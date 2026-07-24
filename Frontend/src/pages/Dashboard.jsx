@@ -22,7 +22,11 @@ export default function Dashboard() {
     activeCall,
     setCurrentView,
     setPendingBookingId,
-    triggerIncomingCall
+    triggerIncomingCall,
+    activeSosCount,
+    activeSosCalls,
+    triggerSOSCall,
+    simulateBulkSOSCalls
   } = useContext(AppContext);
 
   const statCards = [
@@ -85,6 +89,39 @@ export default function Dashboard() {
         })}
       </div>
 
+      {/* Emergency SOS Dispatch Hub */}
+      <div className="bg-red-50 dark:bg-rose-950/10 border border-red-200/55 dark:border-rose-900/30 rounded-3xl p-6 shadow-sm flex flex-col lg:flex-row items-center justify-between gap-6">
+        <div className="flex items-center gap-4 flex-1">
+          <div className="relative w-14 h-14 rounded-2xl bg-red-100 dark:bg-red-950 text-red-650 flex items-center justify-center border border-red-200/50 dark:border-red-900/50 shrink-0">
+            <div className="absolute inset-0 rounded-2xl border border-red-500 animate-ping opacity-75" />
+            <AlertTriangle className="w-6 h-6 animate-pulse" />
+          </div>
+          <div>
+            <h3 className="font-extrabold text-sm text-red-950 dark:text-red-400 uppercase tracking-widest leading-none">
+              SOS Dispatch Control Hub
+            </h3>
+            <p className="text-xs text-red-700/80 dark:text-rose-350/80 mt-2 font-medium">
+              Current distress lines active: <strong className="text-red-950 dark:text-white font-extrabold text-sm">{activeSosCount}</strong> members.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex gap-2.5 w-full lg:w-auto">
+          <button
+            onClick={() => triggerSOSCall("Distress Member", "+919555512345")}
+            className="flex-1 lg:flex-none px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow-md shadow-red-200/40 dark:shadow-none transition-all cursor-pointer active:scale-95 uppercase tracking-wider"
+          >
+            Trigger SOS
+          </button>
+          <button
+            onClick={() => simulateBulkSOSCalls(100)}
+            className="flex-1 lg:flex-none px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow-md transition-all cursor-pointer active:scale-95 uppercase tracking-wider"
+          >
+            Simulate 100 SOS Calls
+          </button>
+        </div>
+      </div>
+
       {/* Middle section with Live Calls and Agent Status */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
@@ -131,34 +168,58 @@ export default function Dashboard() {
               </div>
             )}
 
-            {liveCalls.map((call) => (
-              <div
-                key={call.id}
-                onClick={() => setCurrentView("live-calls")}
-                className="group flex items-center justify-between p-3.5 rounded-xl border border-slate-100 dark:border-slate-900 bg-slate-50/50 hover:bg-slate-50 dark:bg-slate-900/10 dark:hover:bg-slate-900/30 transition-all cursor-pointer"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-sm">
-                    {call.agent[0]}
+            {liveCalls.map((call) => {
+              const isSos = call.callType === 'sos';
+              return (
+                <div
+                  key={call.sid || call.id}
+                  onClick={() => setCurrentView("live-calls")}
+                  className={`group flex items-center justify-between p-3.5 rounded-xl border transition-all cursor-pointer ${
+                    isSos
+                      ? "border-red-200 bg-red-50/20 hover:bg-red-50/40 dark:border-rose-950/40 dark:bg-rose-950/5 dark:hover:bg-rose-950/15"
+                      : "border-slate-100 dark:border-slate-900 bg-slate-50/50 hover:bg-slate-50 dark:bg-slate-900/10 dark:hover:bg-slate-900/30"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-xs ${
+                      isSos
+                        ? "bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400"
+                        : "bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400"
+                    }`}>
+                      {isSos ? "SOS" : (call.agent ? call.agent[0] : "A")}
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-950 dark:text-white flex items-center gap-2">
+                        <span>{call.agent || 'Agent'}</span>
+                        <span className="text-xs text-slate-400 font-medium font-sans">→</span>
+                        <span>{call.customer || 'Customer'}</span>
+                        {isSos && (
+                          <span className="text-[9px] font-extrabold bg-red-100 dark:bg-red-950/85 text-red-650 dark:text-red-400 py-0.5 px-2 rounded-full border border-red-250/50 dark:border-red-900/50 uppercase tracking-widest animate-pulse">
+                            SOS
+                          </span>
+                        )}
+                      </h4>
+                      <p className={`text-xs ${isSos ? 'text-red-600 font-bold' : 'text-slate-400'}`}>
+                        {isSos ? `Emergency: ${call.status}` : 'Ongoing line connection'}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-950 dark:text-white">
-                      {call.agent} <span className="text-xs text-slate-400 font-medium font-sans">→</span> {call.customer}
-                    </h4>
-                    <p className="text-xs text-slate-400">Ongoing line connection</p>
+                  
+                  <div className="flex items-center gap-3">
+                    <span className={`text-xs font-mono font-bold py-1 px-2.5 rounded-lg border ${
+                      isSos
+                        ? "text-red-650 bg-red-50 border-red-200/50 dark:bg-red-950/40 dark:border-red-900"
+                        : "text-slate-500 bg-slate-100 dark:bg-slate-900 border-slate-200/50 dark:border-slate-800"
+                    }`}>
+                      {call.duration}
+                    </span>
+                    <div className="w-6 h-6 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Radio className="w-3.5 h-3.5 animate-pulse" />
+                    </div>
                   </div>
                 </div>
-                
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-mono font-bold text-slate-500 bg-slate-100 dark:bg-slate-900 py-1 px-2.5 rounded-lg border border-slate-200/50 dark:border-slate-800">
-                    {call.duration}
-                  </span>
-                  <div className="w-6 h-6 rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Radio className="w-3.5 h-3.5 animate-pulse" />
-                  </div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

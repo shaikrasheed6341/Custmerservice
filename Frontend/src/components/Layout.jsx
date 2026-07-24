@@ -30,7 +30,8 @@ export default function Layout({ children }) {
     activeUser,
     logout,
     activeCall,
-    triggerIncomingCall
+    triggerIncomingCall,
+    activeSosCount
   } = useContext(AppContext);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -53,7 +54,8 @@ export default function Layout({ children }) {
     { id: "email", label: "Email", icon: Mail },
     { id: "reports", label: "Reports", icon: BarChart3 },
     { id: "agents", label: "Agents", icon: ShieldAlert },
-    { id: "settings", label: "Settings", icon: SettingsIcon }
+    { id: "settings", label: "Settings", icon: SettingsIcon },
+    { id: "customer-sos", label: "Customer App (SOS)", icon: PhoneCall }
   ];
 
   return (
@@ -203,6 +205,16 @@ export default function Layout({ children }) {
                 ACTIVE INCOMING CALL: {activeCall.customerName}
               </span>
             </button>
+          )}
+
+          {/* SOS Alert Banner */}
+          {activeSosCount > 0 && (
+            <div
+              className="flex items-center gap-2.5 px-4 py-2 border border-red-200 bg-red-50 text-red-650 rounded-full shadow-md animate-pulse shadow-red-100 font-extrabold text-xs uppercase tracking-wide"
+            >
+              <div className="w-2.5 h-2.5 bg-red-600 rounded-full animate-ping" />
+              <span>🚨 SOS Alerts: {activeSosCount} Active</span>
+            </div>
           )}
 
           {/* Top Actions */}

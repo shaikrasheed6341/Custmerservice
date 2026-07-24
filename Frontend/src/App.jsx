@@ -15,6 +15,7 @@ import TicketModule from "./pages/TicketModule";
 import LiveCallMonitoring from "./pages/LiveCallMonitoring";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import CustomerSOS from "./pages/CustomerSOS";
 
 // Mock Pages
 import {
@@ -66,6 +67,8 @@ function AppContent() {
         return <AgentsView />;
       case "settings":
         return <Settings />;
+      case "customer-sos":
+        return <CustomerSOS />;
       default:
         return <Dashboard />;
     }
