@@ -1,0 +1,28 @@
+import { drizzle } from 'drizzle-orm/node-postgres';
+import pg from 'pg';
+import dotenv from 'dotenv';
+import * as schema from './schema.js';
+
+dotenv.config();
+
+const { Pool } = pg;
+
+const pool = new Pool({
+  host: process.env.DB_HOST || 'localhost',
+  port: parseInt(process.env.DB_PORT || '5432', 10),
+  user: process.env.DB_USER || 'postgres',
+  password: process.env.DB_PASSWORD || 'postgres',
+  database: process.env.DB_NAME || 'customer',
+});
+
+// Check connectivity
+pool.connect((err, client, release) => {
+  if (err) {
+    console.error('❌ Database connection failed:', err.message);
+  } else {
+    console.log('✅ Database connected successfully');
+    release();
+  }
+});
+
+export const db = drizzle(pool, { schema });
